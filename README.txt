@@ -11,7 +11,7 @@ everything inside maing.gsc and paste mine, inject and enjoy!.
 
 IMPORTANT!:
 1) I already know that testing zombie spawns dont always work, usually when they are a
-"in_water", "in_snow" or "find_flesh" spawn type(No, I will not other zombie type spawns).
+"in_water", "in_snow" or "find_flesh" spawn type(No, I will not add other zombie type spawns).
 
 2) Dual cz crashes on some maps, I removed them on those maps but I have no idea if pap cz
 also crashes so just in case I skipped them aswell.
