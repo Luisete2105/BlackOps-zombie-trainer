@@ -7,8 +7,10 @@ init()
     //return;
     level endon( "game_ended" );
 
+    //Check in case the script loads when it shouldnt
     if ( GetDvar( "zombiemode" ) != "1" ) return;
 
+    //Loads hitmarker texture
     precacheShader( "damage_feedback" );
 
     level thread onplayerconnect();
@@ -40,6 +42,7 @@ onplayerconnect()
         player thread spawn_selection();
         player thread god();
 
+        //Creates hitmarker if it is not
         if(!isDefined(player.hud_damagefeedback)){
             player.hud_damagefeedback = newclientHudElem( player );
 	        player.hud_damagefeedback.horzAlign = "center";
@@ -67,7 +70,7 @@ onplayerspawned()
 
 }
 
-
+// Credits scripts
 luisete_credits(){
 
     level endon( "game_ended" );
@@ -88,7 +91,7 @@ luisete_credits(){
             level.luisete_credits.alpha = 1;
             level.luisete_credits.color = (1,1,1);
             level.luisete_credits.hidewheninmenu = 1;
-        level.luisete_credits.label = "SR Trainer V1 made by ^1Luis^3ete^12105^7! link on ^0Github^7 and ^6Discord^7 for some support";
+        level.luisete_credits.label = "SR Trainer V1.1 made by ^1Luis^3ete^12105^7! link on ^0Github^7 and ^6Discord^7 for support";
 
         level thread flashing();
     }
@@ -98,7 +101,7 @@ luisete_credits(){
 flashing(){
     level endon( "game_ended" );
 
-    while(true){
+    for(;;){
 
         level.luisete_credits fadeOverTime(7);
         level.luisete_credits.alpha = 0;
@@ -113,13 +116,13 @@ flashing(){
 
 }
 
+// Chests scripts
 replace_chests(){
 
     while(level.chests.size == 0) wait 0.1;
     wait 1;
 
-    if(!isDefined(level.zombie_weapons_keys)) level.zombie_weapons_keys = GetArrayKeys( level.zombie_weapons );
-
+    if(!isDefined(level.zombie_weapons_keys)) level.zombie_weapons_keys = GetArrayKeys( level.zombie_include_weapons );
 
     for(i=0;i<level.chests.size;i++){
 
@@ -129,11 +132,10 @@ replace_chests(){
         level.chests[i] thread custom_chest_think();
     }
 
-
-
 }
 
 custom_chest_think(){
+    level endon( "game_ended" );
 
     self setCursorHint( "HINT_NOICON" );
     self.index = 0;
@@ -147,7 +149,7 @@ custom_chest_think(){
     self.weapon_model setmodel( modelname ); 
     self.weapon_model useweaponhidetags( self.weapon_string );
     
-    while(1){
+    for(;;){
         wait 0.05;
         self waittill( "trigger", user ); 
 
@@ -165,13 +167,15 @@ custom_chest_think(){
 
         if(user attackButtonPressed()){
             self custom_change_weapon(true);
+            user iPrintLnBold(self.weapon_string);
         }else if(user adsButtonPressed()){
             self custom_change_weapon(false);
+            user iPrintLnBold(self.weapon_string);
         }else{
             user custom_give_weapon(self.weapon_string);
         }
 
-        wait 0.2;
+        wait 0.1;
 
         self.using = false;
     }
@@ -233,7 +237,7 @@ custom_give_weapon( weapon_string ){
 	// This should never be true for the first time.
 	if( primaryWeapons.size >= weapon_limit )
 	{
-		current_weapon = self getCurrentWeapon(); // get hiss current weapon
+		current_weapon = self getCurrentWeapon(); // get his current weapon
 
 		if ( is_placeable_mine( current_weapon ) || is_equipment( current_weapon ) ) 
 		{
@@ -262,8 +266,7 @@ custom_give_weapon( weapon_string ){
 		self [[ level.zombiemode_offhand_weapon_give_override ]]( weapon_string );
 	}
 
-
-	else if ( weapon_string == "knife_ballistic_zm" && self HasWeapon( "bowie_knife_zm" ) )
+    if ( weapon_string == "knife_ballistic_zm" && self HasWeapon( "bowie_knife_zm" ) )
 	{
 		weapon_string = "knife_ballistic_bowie_zm";
 	}
@@ -307,9 +310,10 @@ custom_change_weapon( next_weapon ){
     self.weapon_model useweaponhidetags( self.weapon_string );
 
     if(custom_weapon_is_dual_wield( self.weapon_string )){
-
-        if( (level.script == "zombie_cosmodrome" || level.script == "zombie_pentagon") && self.weapon_string == "cz75dw_zm" ){
+        // This is to avoid crash when giving cz (havent tested for upgraded one but I am too lazy to check)
+        if( ( level.script == "zombie_theater" || level.script == "zombie_pentagon" || level.script == "zombie_cosmodrome" || level.script == "zombie_coast" || level.script == "zombie_temple" ) && self.weapon_string == "cz75dw_zm" || self.weapon_string == "cz75dw_upgraded_zm" ){
             custom_change_weapon( next_weapon );
+            return;
         }
 
         self.weapon_model_dw = spawn( "script_model", self.weapon_model.origin - ( 3, 3, 3 ) ); // extra model for dualwield weapons
@@ -349,17 +353,7 @@ custom_show_chest(){
 
 }
 
-disable_zombies(){
-    level endon( "game_ended" );
-    for(;;){
-        flag_wait( "spawn_zombies" );
-        wait 0.5;
-        level.zombie_total = 7777777;
-        level.zombie_vars["zombie_use_failsafe"] = false;
-        flag_clear( "spawn_zombies");
-    }
-}
-
+// Menu stuff
 init_hud(){
 
 
@@ -422,18 +416,23 @@ monitor_zm_spawns(){
 
 }
 
+// Hitmarker and damage show
 Hit_Monitor( eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc, modelIndex, psOffsetTime ){
 
-    eAttacker thread updateDamageFeedback();
+    eAttacker thread updateDamageFeedback(  eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc, modelIndex, psOffsetTime  );
 
     self [[level.old_callbackActorDamage]] ( eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc, modelIndex, psOffsetTime );
 
 }
 
-updateDamageFeedback()
+updateDamageFeedback(  eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc, modelIndex, psOffsetTime )
 {
 
 	if ( !IsPlayer( self ) ) return;
+
+
+    //self iPrintLnBold("Hit by "+iDamage+" on "+sHitLoc+" with "+sWeapon+"("+sMeansOfDeath+")!");   
+    self iPrintLnBold("Hit by "+iDamage+" on "+sHitLoc+" with "+sWeapon+"!");   
 
 	self playlocalsound( "SP_hit_alert" );
 	
@@ -442,6 +441,7 @@ updateDamageFeedback()
 	self.hud_damagefeedback.alpha = 0;
 }
 
+// Custom cams
 nade_monitor()
 {
     level endon( "game_ended" );
@@ -459,6 +459,7 @@ nade_monitor()
         wait 0.1;
         self waittill( "grenade_fire", grenade, weapName );
         if(!self.can_activate_cam) continue;
+        if(non_desired_weapons(weapName)) continue;
         self.can_activate_cam = false;
 
         self giveWeapon(weapName);
@@ -498,6 +499,27 @@ nade_monitor()
 
 }
 
+non_desired_weapons(weapName){
+
+    switch( weapName )
+	{
+	case "sniper_explosive_bolt_zm":
+    case "sniper_explosive_bolt_upgraded_zm":
+    case "explosive_bolt_zm":
+    case "explosive_bolt_upgraded_zm":
+    case "china_lake_zm":
+    case "china_lake_upgraded_zm":
+    case "claymore_zm":
+    case "spikemore_zm":
+    case "zombie_nesting_doll_single":
+		return true;
+	}
+
+    return false;
+
+}
+
+// Custom Spawns
 get_available_zombie_spawns(){
 
     if(level.script == "zombie_temple"){
@@ -571,7 +593,7 @@ spawn_selection(){
     self.can_activate_cam = true;
     self.can_spawn_zombie = true;
 
-    while(true){
+    for(;;){
         wait 0.05;
 
         if( self useButtonPressed() && self JumpButtonPressed()){
@@ -673,7 +695,14 @@ say_damage(player){
         self waittill( "damage", amount, attacker, direction, point, dmg_type, modelName, tagName );
         if(attacker != player) continue;
         if(dmg_type == "MOD_MELEE") self dodamage( self.health + 100, (0,0,0) );
-        player iPrintLnBold("Hit by "+amount+"!");        
+        //player iPrintLnBold("Hit by "+amount+"!");        
+        /*player iPrintLnBold("amount "+amount+" | attacker "+attacker+" | direction "+direction+" | point "+point+" | dmg_type "+dmg_type+" | modelName "+modelName+" | tagName "+tagName);
+        player iPrintLnBold("amount "+amount);
+        player iPrintLnBold(" | direction "+direction);
+        player iPrintLnBold(" | point "+point);
+        player iPrintLnBold(" | dmg_type "+dmg_type);
+        player iPrintLnBold(" | modelName "+modelName);
+        player iPrintLnBold(" | tagName "+tagName);*/
         self.health = 7777777;
     }
 
@@ -701,7 +730,7 @@ check_damage(player){
 
         self waittill( "damage", amount, attacker, direction, point, dmg_type, modelName, tagName );
         if(self.teddy_active && attacker == player) player iPrintLnBold("Hit by "+amount+"!");
-        player updateDamageFeedback();
+        player updateDamageFeedback( );
         self.health = 7777777;
     }
 
@@ -776,11 +805,25 @@ update_spawners_text(){
     
 }
 
+// Other scripts
+
+disable_zombies(){
+    level endon( "game_ended" );
+
+    for(;;){
+        flag_wait( "spawn_zombies" );
+        wait 0.5;
+        level.zombie_total = 7777777;
+        level.zombie_vars["zombie_use_failsafe"] = false;
+        flag_clear( "spawn_zombies");
+    }
+}
+
 god(){
     level endon( "game_ended" );
     self endon( "disconnect" );
 
-    while (true){
+    for(;;){
         wait 0.5;
         self waittill( "weapon_fired", weapon ); 
         // Evita que Samantha te mate al estar fuera del mapa
