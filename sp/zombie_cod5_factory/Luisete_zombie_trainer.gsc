@@ -4,10 +4,10 @@
 
 init()
 {
-    //return;
+    //return; //uncomment the return if you want to disable the full script
     level endon( "game_ended" );
 
-    //Check in case the script loads when it shouldnt
+    //Checks in case the script loads when it shouldnt
     if ( GetDvar( "zombiemode" ) != "1" ) return;
 
     //Loads hitmarker texture
@@ -70,6 +70,99 @@ onplayerspawned()
 
 }
 
+// Shows error if there is a trainer loaded already
+show_warning(){
+	level endon( "game_ended" );
+	level notify( "Warning" );
+	level endon( "Warning" );
+
+	flag_wait( "starting final intro screen fadeout" );
+    wait 2.15;
+
+	level.background = NewHudElem(); 
+		level.background.x = 0; 
+		level.background.y = 45; 
+		level.background.alignX = "center"; 
+		level.background.alignY = "top"; 	
+		level.background.horzAlign = "center"; 
+		level.background.vertAlign = "top"; 
+		level.background.foreground = false;
+		level.background SetShader( "black", 300, 100 );
+		level.background.sort = 0;
+		level.background.hidewheninmenu = 1;
+	level.background.alpha = 0; 
+
+	level.Warning1 = NewHudElem(); 
+		level.Warning1.x = 0; 
+		level.Warning1.y = 50; 
+		level.Warning1.alignX = "center"; 
+		level.Warning1.alignY = "top"; 	
+		level.Warning1.horzAlign = "center"; 
+		level.Warning1.vertAlign = "top"; 
+		level.Warning1.foreground = false;
+		level.Warning1.fontScale = 3;
+		level.Warning1 SetText("ERROR, you have more");
+		level.Warning1.sort = 2;
+		level.Warning1.hidewheninmenu = 1;
+	level.Warning1.alpha = 0;
+
+	level.Warning2 = NewHudElem(); 
+		level.Warning2.x = 0; 
+		level.Warning2.y = 100; 
+		level.Warning2.alignX = "center"; 
+		level.Warning2.alignY = "top"; 	
+		level.Warning2.horzAlign = "center"; 
+		level.Warning2.vertAlign = "top"; 
+		level.Warning2.foreground = false;
+		level.Warning2.fontScale = 3;
+		level.Warning2 SetText("than 1 trainer loaded!");
+		level.Warning2.sort = 2;
+		level.Warning2.hidewheninmenu = 1;
+	level.Warning2.alpha = 0; 
+
+	level.background fadeOverTime(5);
+	level.background.alpha = 1;
+
+	level.Warning1 fadeOverTime(5);
+	level.Warning1.alpha = 1;
+	level.Warning2 fadeOverTime(5);
+	level.Warning2.alpha = 1;
+
+	wait 5;
+
+	level.background fadeOverTime(2);
+	level.background.alpha = 0;
+
+	level.Warning1 fadeOverTime(2);
+	level.Warning1.alpha = 0;
+	level.Warning2 fadeOverTime(2);
+	level.Warning2.alpha = 0;
+	
+	wait 2;
+
+	level.Warning1 setText("Current trainer is ");
+	level.Warning2 setText(level.luisete_trainer);
+
+	level.background fadeOverTime(2);
+	level.background.alpha = 1;
+
+	level.Warning1 fadeOverTime(2);
+	level.Warning1.alpha = 1;
+	level.Warning2 fadeOverTime(2);
+	level.Warning2.alpha = 1;
+
+	wait 2;
+
+	level.background fadeOverTime(2);
+	level.background.alpha = 0;
+
+	level.Warning1 fadeOverTime(2);
+	level.Warning1.alpha = 0;
+	level.Warning2 fadeOverTime(2);
+	level.Warning2.alpha = 0;
+
+}
+
 // Credits scripts
 luisete_credits(){
 
@@ -81,17 +174,17 @@ luisete_credits(){
     if(!isdefined(level.luisete_credits)){
 
 	    level.luisete_credits = newHudElem();
-            level.luisete_credits.alignx = "left";
+            level.luisete_credits.alignx = "center";
             level.luisete_credits.aligny = "top";
             level.luisete_credits.horzalign = "user_center";
             level.luisete_credits.vertalign = "user_top";
-            level.luisete_credits.x = -350;
+            level.luisete_credits.x = 0;
             level.luisete_credits.y = 5;
             level.luisete_credits.fontscale = 2;
             level.luisete_credits.alpha = 1;
             level.luisete_credits.color = (1,1,1);
             level.luisete_credits.hidewheninmenu = 1;
-        level.luisete_credits.label = "SR Trainer V1.1 made by ^1Luis^3ete^12105^7! link on ^0Github^7 and ^6Discord^7 for support";
+        level.luisete_credits.label = "SR Trainer V1.2 made by ^1Luis^3ete^12105^7! link on ^0Github^7 and ^6Discord^7 for support";
 
         level thread flashing();
     }
